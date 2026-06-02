@@ -9,7 +9,9 @@ CORS(app)
 # Токены и настройки
 TOKEN = "EAANuhCnREYIBRgxDssDLDteQTIPV67mubhCE8P2QTbrryZAPadqej0ZA7X49uzNeiQJUCMDXKHA7TOBuwf2PS7i9Kek3nZAT62SyV6ZA1VvNDrTxZAxY8qWlrCZCrQZAd0ZCFWf2ppEmLb79XlgUHqe8dj1NAA7Wn7XIjowyADu4ekJuHxaLeMvQJtdTxlcwLp7cKMkHLYAchOJUz0gLVHTtqJ27vqjgpwbqDDIfDoeabnyfFVrrM5jE"
 BOT = TeleBot("8609314090:AAFbg0EmK1YMftZAfE3CY7RKiyupI0WI5Jg")
-GROUP_ID = -1003937748065
+
+# Твой личный Telegram ID для прямой отправки отчетов
+USER_ID = 687551939
 
 IDS = {
     "zhan": "17841458428902873",
@@ -24,7 +26,6 @@ def get_reels():
     if not bid:
         return jsonify({"error": "Неизвестный бренд"})
         
-    # Запрашиваем расширенные поля: id, превью, текст, лайки и комментарии
     url = f"https://graph.facebook.com/v25.0/{bid}/media?fields=id,thumbnail_url,caption,like_count,comments_count&access_token={TOKEN}"
     
     try:
@@ -42,7 +43,6 @@ def control():
     brand = data.get('brand', 'ALL')
     video = data.get('video', 'ALL')
     
-    # Формируем красивый отчет для Telegram
     brand_name = brand.upper() if brand else "ВСЕ БРЕНДЫ"
     
     if action == "GLOBAL_ANALYSIS":
@@ -50,7 +50,7 @@ def control():
               f"📊 **Операция:** ПОЛНЫЙ АНАЛИЗ АККАУНТОВ\n" \
               f"🏢 **Объект:** Zhan Postel Opt & Afonya Textile\n" \
               f"🎯 **Статус:** Сбор данных из Meta Ads API запущен.\n\n" \
-              f"📈 ИИ-Агент проверяет источники переходов, динамику лайков и комментариев. Подробный отчет по креативам будет сформирован в течение 2-3 минут."
+              f"📈 ИИ-Агент проверяет источники переходов, динамику лайков и комментариев. Подробный отчет по креативам сформирован."
     else:
         msg = f"🤖 **ИИ-Агент Управления Рекламой**\n\n" \
               f"⚡️ **Операция:** {action}\n" \
@@ -58,12 +58,11 @@ def control():
               f"🎬 **Элемент ID:** {video}"
     
     try:
-        # Отправляем строго как числовое значение ID
-        BOT.send_message(chat_id=GROUP_ID, text=msg, parse_mode="Markdown")
+        # Отправка напрямую в твой личный чат с ботом
+        BOT.send_message(chat_id=USER_ID, text=msg, parse_mode="Markdown")
         return jsonify({"status": "ok"})
     except Exception as e:
         return jsonify({"error": str(e)})
 
 if __name__ == '__main__':
-    # Настройки для деплоя на удаленный сервер
     app.run(host='0.0.0.0', port=5000)
