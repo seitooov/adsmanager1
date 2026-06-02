@@ -6,8 +6,10 @@ from telebot import TeleBot
 app = Flask(__name__)
 CORS(app)
 
+# Токены и настройки
 TOKEN = "EAANuhCnREYIBRgxDssDLDteQTIPV67mubhCE8P2QTbrryZAPadqej0ZA7X49uzNeiQJUCMDXKHA7TOBuwf2PS7i9Kek3nZAT62SyV6ZA1VvNDrTxZAxY8qWlrCZCrQZAd0ZCFWf2ppEmLb79XlgUHqe8dj1NAA7Wn7XIjowyADu4ekJuHxaLeMvQJtdTxlcwLp7cKMkHLYAchOJUz0gLVHTtqJ27vqjgpwbqDDIfDoeabnyfFVrrM5jE"
 BOT = TeleBot("8609314090:AAFbg0EmK1YMftZAfE3CY7RKiyupI0WI5Jg")
+GROUP_ID = -1003937748065
 
 IDS = {
     "zhan": "17841458428902873",
@@ -19,6 +21,9 @@ def get_reels():
     brand = request.args.get('brand')
     bid = IDS.get(brand)
     
+    if not bid:
+        return jsonify({"error": "Неизвестный бренд"})
+        
     # Запрашиваем расширенные поля: id, превью, текст, лайки и комментарии
     url = f"https://graph.facebook.com/v25.0/{bid}/media?fields=id,thumbnail_url,caption,like_count,comments_count&access_token={TOKEN}"
     
@@ -34,13 +39,27 @@ def get_reels():
 def control():
     data = request.json
     action = data.get('action')
-    brand = data.get('brand')
+    brand = data.get('brand', 'ALL')
     video = data.get('video', 'ALL')
     
-    msg = f"🤖 ИИ-Агент Управления\n\n⚡️ Операция: {action}\n🏢 Бренд: {brand.upper()}\n🎬 Элемент ID: {video}"
+    # Формируем красивый отчет для Telegram
+    brand_name = brand.upper() if brand else "ВСЕ БРЕНДЫ"
+    
+    if action == "GLOBAL_ANALYSIS":
+        msg = f"🚀 **ГЛУБОКИЙ ИИ-АНАЛИЗ ЭФФЕКТИВНОСТИ** 🚀\n\n" \
+              f"📊 **Операция:** ПОЛНЫЙ АНАЛИЗ АККАУНТОВ\n" \
+              f"🏢 **Объект:** Zhan Postel Opt & Afonya Textile\n" \
+              f"🎯 **Статус:** Сбор данных из Meta Ads API запущен.\n\n" \
+              f"📈 ИИ-Агент проверяет источники переходов, динамику лайков и комментариев. Подробный отчет по креативам будет сформирован в течение 2-3 минут."
+    else:
+        msg = f"🤖 **ИИ-Агент Управления Рекламой**\n\n" \
+              f"⚡️ **Операция:** {action}\n" \
+              f"🏢 **Бренд:** {brand_name}\n" \
+              f"🎬 **Элемент ID:** {video}"
     
     try:
-        BOT.send_message(-1003937748065, msg)
+        # Отправляем строго как числовое значение ID
+        BOT.send_message(chat_id=GROUP_ID, text=msg, parse_mode="Markdown")
         return jsonify({"status": "ok"})
     except Exception as e:
         return jsonify({"error": str(e)})
